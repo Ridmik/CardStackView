@@ -3,6 +3,7 @@ package com.yuyakaido.android.cardstackview;
 import android.content.Context;
 import android.graphics.PointF;
 import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Interpolator;
@@ -407,11 +408,21 @@ public class CardStackLayoutManager
         view.setTranslationY(0.0f);
     }
 
+    @SuppressWarnings("DuplicateBranchesInSwitch")
     private void updateScale(View view, int index) {
         int nextIndex = index - 1;
         float currentScale = 1.0f - index * (1.0f - setting.scaleInterval);
         float nextScale = 1.0f - nextIndex * (1.0f - setting.scaleInterval);
         float targetScale = currentScale + (nextScale - currentScale) * state.getRatio();
+        if(Float.isNaN(targetScale)) {
+            // targetScale = currentScale + (nextScale - currentScale) * 0.5f; => cs + .5ns - .5cs = .5cs + .5ns
+            targetScale = (currentScale + nextScale) * 0.5f;
+            if(Float.isNaN(targetScale)) {
+                targetScale = 0.5f; // if still NaN, idk what to do. send hard coded value for now.
+
+            }
+            Log.d("debug", "targetScale is Float.NaN, set targetScale to "+targetScale);
+        }
         switch (setting.stackFrom) {
             case None:
                 view.setScaleX(targetScale);
